@@ -3,11 +3,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 
+# Always load the env file that sits next to this module.
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL is not set in backend/.env")
 
 engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autoflush=False, bind=engine)
+SessionLocal = sessionmaker(bind=engine, autoflush=False)
 
 Base = declarative_base()
 
