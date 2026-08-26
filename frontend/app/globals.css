@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fff6f0;
+  --foreground: #1c1917;
+  --ink: #171717;
+  --blush: #ffd6e0;
+  --sky: #7eb8da;
+  --sun: #f5c84c;
+  --mint: #b8e0d2;
+  --paper: #fffdf9;
+  --stroke: #1c1917;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-ink: var(--ink);
+  --color-blush: var(--blush);
+  --color-sky: var(--sky);
+  --color-sun: var(--sun);
+  --color-mint: var(--mint);
+  --color-paper: var(--paper);
+  --color-stroke: var(--stroke);
+  --font-hand: var(--font-hand);
+  --font-body: var(--font-body);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+.font-hand {
+  font-family: var(--font-hand), cursive;
+}
+
+/* Sketchy, imperfect borders */
+.sketch-border {
+  border: 2.5px solid var(--stroke);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  background: var(--paper);
+}
+
+.sketch-border-thick {
+  border: 3px solid var(--stroke);
+  border-radius: 18px 28px 16px 24px / 24px 16px 28px 18px;
+  background: var(--paper);
+}
+
+.sketch-btn {
+  border: 3px solid var(--stroke);
+  border-radius: 999px;
+  background: var(--sun);
+  color: var(--ink);
+  font-family: var(--font-hand), cursive;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 3px 3px 0 var(--stroke);
+}
+
+.sketch-btn:hover {
+  transform: rotate(-1deg) translateY(-1px);
+  box-shadow: 4px 4px 0 var(--stroke);
+}
+
+.sketch-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--stroke);
+}
+
+.sketch-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Rough-cut photo frame */
+.rough-cut {
+  border: 3px solid var(--stroke);
+  border-radius: 12px 40px 18px 35px / 35px 18px 40px 12px;
+  overflow: hidden;
+  box-shadow: 5px 5px 0 rgba(28, 25, 23, 0.15);
+}
+
+.wobble {
+  animation: wobble 2.4s ease-in-out infinite;
+}
+
+@keyframes wobble {
+  0%,
+  100% {
+    transform: rotate(-6deg);
+  }
+  50% {
+    transform: rotate(6deg);
+  }
+}
+
+.float-doodle {
+  animation: floaty 4s ease-in-out infinite;
+}
+
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
