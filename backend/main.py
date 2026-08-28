@@ -2,12 +2,15 @@ from services.trip_service import calculate_daily_budget, get_trip_category, get
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from dotenv import load_dotenv
+import os
 
 from models.trip import Trip
 from database import SessionLocal, init_db
 from services.bedrock_service import get_ai_recommendation
 
 init_db()
+load_dotenv()
 
 class TripRequest(BaseModel):
     destination: str
