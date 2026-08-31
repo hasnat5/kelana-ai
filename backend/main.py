@@ -1,10 +1,13 @@
+from services.auth_service import register_user, login_user, get_current_user
 from services.trip_service import calculate_daily_budget, get_trip_category, get_recommended_places, get_transportation_recommendation, get_travel_season
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel,  field_validator
 from dotenv import load_dotenv
+from typing import Optional
 import os
 
+from models.user import User
 from models.trip import Trip
 from database import SessionLocal, init_db
 from services.bedrock_service import get_ai_recommendation
@@ -18,10 +21,34 @@ class TripRequest(BaseModel):
     budget: float
     month: str
     travel_style: str
+    
+class TripUpdateRequest(BaseModel):
+    budget:       Optional[float] = None
+    days:         Optional[int]   = None
+    travel_style: Optional[str]   = None
 
-class TripUpdate(BaseModel):
-    budget: float
+class RegisterRequest(BaseModel):
+    name:     str
+    email:    str
+    password: str
 
+    @field_validator("email")
+    @classmethod
+    def email_must_contain_at(cls, v: str) -> str:
+        if "@" not in v or "." not in v.split("@")[-1]:
+            raise ValueError("Invalid email address")
+        return v.lower().strip()
+
+class LoginRequest(BaseModel):
+    email:    str
+    password: str
+
+    @field_validator("email")
+    @classmethod
+    def email_must_contain_at(cls, v: str) -> str:
+        if "@" not in v or "." not in v.split("@")[-1]:
+            raise ValueError("Invalid email address")
+        return v.lower().strip()
 
 app = FastAPI()
 
@@ -41,6 +68,53 @@ def home():
 def home():
     return {"status": "OK"}
 
+
+@app.post("/api/v1/auth/register", status_code=201)
+def register(request: RegisterRequest):
+    db = SessionLocal()
+    try:
+        user = register_user(
+            db       = db,
+            name     = request.name,
+            email    = request.email,
+            password = request.password,
+        )
+        return {
+            "id":         user.id,
+            "name":       user.name,
+            "email":      user.email,
+            "created_at": user.created_at,
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    finally:
+        db.close()
+
+@app.post("/api/v1/auth/login")
+def login(request: LoginRequest):
+    db = SessionLocal()
+    try:
+        return login_user(db=db, email=request.email, password=request.password)
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+    finally:
+        db.close()
+
+@app.get("/api/v1/auth/me")
+def me(current_user: User = Depends(get_current_user)):
+    db = SessionLocal()
+    try:
+        trip_count = db.query(Trip).filter(Trip.user_id == current_user.id).count()
+    finally:
+        db.close()
+    return {
+        "id":          current_user.id,
+        "name":        current_user.name,
+        "email":       current_user.email,
+        "created_at":  current_user.created_at,
+        "total_trips": trip_count,
+    }
+
 @app.get("/api/v1/transportations")
 def get_transportation():
     return ["Bus", "Train", "Flight"]
@@ -56,7 +130,7 @@ def get_trip_categories():
 
 
 @app.post("/api/v1/trips")
-def create_trip(request: TripRequest):
+def create_trip(request: TripRequest, current_user: User = Depends(get_current_user),):
     daily_budget = calculate_daily_budget(request.budget, request.days)
     category = get_trip_category(request.budget)
     travel_season = get_travel_season(request.month)
@@ -71,23 +145,26 @@ def create_trip(request: TripRequest):
     )
 
     trip = Trip(
-       destination = request.destination, 
-       days = request.days,
-       month = request.month,
-       travel_season = travel_season,
-       budget = request.budget, 
-       daily_budget = daily_budget,
-       travel_style = request.travel_style,
-       category = category,
-       ai_recommendation = ai_recommendation
+        user_id = current_user.id,
+        destination = request.destination, 
+        days = request.days,
+        month = request.month,
+        travel_season = travel_season,
+        budget = request.budget, 
+        daily_budget = daily_budget,
+        travel_style = request.travel_style,
+        category = category,
+        ai_recommendation = ai_recommendation
     )
 
     db = SessionLocal()
-    db.add(trip)
-    db.commit()
-    db.refresh(trip)
-    db.close()
-    return trip
+    try:
+        db.add(trip)
+        db.commit()
+        db.refresh(trip)
+        return trip
+    finally:
+        db.close()
 
 @app.post("/api/v1/trips/{trip_id}/generate")
 def generate_trip_recommendation(trip_id: int):
@@ -129,50 +206,67 @@ def generate_trip_recommendation(trip_id: int):
         
 
 @app.get("/api/v1/trips")
-def list_trips():
+def list_trips(current_user: User = Depends(get_current_user)):
     db = SessionLocal()
-    trips = db.query(Trip).all()
-    db.close()
-    return trips
+    try:
+        return db.query(Trip).filter(Trip.user_id == current_user.id).all()
+    finally:
+        db.close()
 
 @app.get("/api/v1/trips/{trip_id}")
-def get_trip(trip_id: int):
+def get_trip(trip_id: int, current_user: User = Depends(get_current_user)):
     db = SessionLocal()
-    trip = db.query(Trip).filter(Trip.id == trip_id).first()
-    db.close()
+    try:
+        trip = db.query(Trip).filter(
+            Trip.id == trip_id,
+            Trip.user_id == current_user.id,
+        ).first()
+    finally:
+        db.close()
     if trip is None:
-        raise HTTPException(status_code=404, detail=f"Trip with id {trip_id} not found")
+        raise HTTPException(status_code=404, detail=f"Trip {trip_id} not found")
     return trip
 
 @app.put("/api/v1/trips/{trip_id}")
-def update_trip(trip_id: int, trip_data: TripUpdate):
+def update_trip(trip_id: int, request: TripUpdateRequest, current_user: User = Depends(get_current_user)):
     db = SessionLocal()
-    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+    try:
+        trip = db.query(Trip).filter(
+            Trip.id == trip_id,
+            Trip.user_id == current_user.id,
+        ).first()
+        if trip is None:
+            raise HTTPException(status_code=404, detail=f"Trip {trip_id} not found")
 
-    if trip is None:
-        raise HTTPException(status_code=404, detail=f"Trip with id {trip_id} not found")
+        if request.budget is not None:
+            trip.budget = request.budget
+        if request.days is not None:
+            trip.days = request.days
+        if request.travel_style is not None:
+            trip.travel_style = request.travel_style
 
-    trip.budget = trip_data.budget
+        trip.daily_budget = calculate_daily_budget(trip.budget, trip.days)
+        trip.category     = get_trip_category(trip.budget)
 
-    trip.category = get_trip_category(trip_data.budget)
-    trip.daily_budget = calculate_daily_budget(trip_data.budget, trip.days)
-
-    db.commit()
-    db.refresh(trip)
-    db.close()
-    return trip
+        db.commit()
+        db.refresh(trip)
+        return trip
+    finally:
+        db.close()
 
 @app.delete("/api/v1/trips/{trip_id}")
-def delete_trip(trip_id: int):
+def delete_trip(trip_id: int, current_user: User = Depends(get_current_user)):
     db = SessionLocal()
-    trip = db.query(Trip).filter(Trip.id == trip_id).first()
 
-    if trip is None:
+    try:
+        trip = db.query(Trip).filter(
+            Trip.id == trip_id,
+            Trip.user_id == current_user.id,
+        ).first()
+        if trip is None:
+            raise HTTPException(status_code=404, detail=f"Trip {trip_id} not found")
+        db.delete(trip)
+        db.commit()
+        return {"message": f"Trip {trip_id} deleted successfully"}
+    finally:
         db.close()
-        raise HTTPException(status_code=404, detail=f"Trip with id {trip_id} not found")
-
-    db.delete(trip)
-    db.commit()
-    db.close()
-
-    return{"message": f"Trip with id {trip_id} has been deleted successfully."}
