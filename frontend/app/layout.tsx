@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Caveat, Nunito } from "next/font/google";
 import "./globals.css";
+import Navbar from "@/components/Navbar";
 
 const caveat = Caveat({
   variable: "--font-hand",
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${caveat.variable} ${nunito.variable} h-full`}
     >
       <body className="min-h-full flex flex-col font-body antialiased">
+        <Navbar />
         {children}
       </body>
     </html>

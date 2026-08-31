@@ -1,163 +1,130 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { getTrip } from "@/services/tripService";
+import { getTrip, type Trip } from "@/services/tripService";
 import DayCards from "@/components/DayCards";
-import {
-    DoodleBackdrop,
-    Squiggle,
-    Star,
-    PlaneDoodle,
-} from "@/components/Doodles";
-import { getDestinationImageUrl } from "@/lib/destination";
 
-interface TripDetailPageProps {
-    params: Promise<{ id: string }>;
-}
+const CATEGORY_BADGE: Record<string, string> = {
+    backpacker: "bg-orange-100 text-orange-600",
+    luxury: "bg-green-100 text-green-600",
+    standard: "bg-blue-100 text-blue-600",
+};
 
-export default async function TripDetailPage({ params }: TripDetailPageProps) {
-    const { id } = await params;
-    const tripId = Number(id);
+export default function TripDetailPage() {
+    const router = useRouter();
+    const params = useParams();
+    const tripId = Number(params.id);
 
-    if (isNaN(tripId)) notFound();
+    const [trip, setTrip] = useState<Trip | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
-    let trip: Awaited<ReturnType<typeof getTrip>>;
-    try {
-        trip = await getTrip(tripId);
-    } catch {
-        notFound();
+    useEffect(() => {
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            router.replace("/login");
+            return;
+        }
+
+        if (isNaN(tripId)) {
+            setError("Invalid trip ID.");
+            return;
+        }
+
+        getTrip(tripId, token)
+            .then(setTrip)
+            .catch((err) => setError(err instanceof Error ? err.message : "Trip not found."));
+    }, [tripId, router]);
+
+    if (error) {
+        return (
+            <main className="flex-1 flex flex-col items-center px-4 py-10 bg-[var(--background)]">
+                <div className="w-full max-w-lg flex flex-col gap-4">
+                    <div className="rounded-2xl bg-red-50 border border-red-200 px-5 py-4 text-sm text-red-600">
+                        {error}
+                    </div>
+                    <Link
+                        href="/trips"
+                        className="w-full rounded-2xl border border-[#2196F3] text-[#2196F3] hover:bg-[#e3f0fd] font-semibold text-sm tracking-wide py-4 transition-colors duration-150 shadow-sm text-center"
+                    >
+                        ← Back to Trip History
+                    </Link>
+                </div>
+            </main>
+        );
     }
 
-    const heroUrl = getDestinationImageUrl(trip.destination);
-    const categoryLabel =
-        trip.category.charAt(0).toUpperCase() + trip.category.slice(1);
+    if (!trip) {
+        return (
+            <main className="flex-1 flex items-center justify-center bg-[var(--background)]">
+                <div className="w-8 h-8 rounded-full border-4 border-[#e3f0fd] border-t-[#2196F3] animate-spin" />
+            </main>
+        );
+    }
 
-    const details: {
-        label: string;
-        value: string;
-        tilt: string;
-        accent: string;
-    }[] = [
-        {
-            label: "Destination",
-            value: trip.destination,
-            tilt: "-rotate-1",
-            accent: "bg-mint/50",
-        },
-        {
-            label: "Budget",
-            value: `USD ${trip.budget.toLocaleString()}`,
-            tilt: "rotate-1",
-            accent: "bg-blush/50",
-        },
-        {
-            label: "Category",
-            value: categoryLabel,
-            tilt: "rotate-1",
-            accent: "bg-sun/50",
-        },
-        {
-            label: "Days",
-            value: `${trip.days} ${trip.days === 1 ? "day" : "days"}`,
-            tilt: "-rotate-1",
-            accent: "bg-sky/40",
-        },
-        {
-            label: "Travel Style",
-            value: trip.travel_style ?? "—",
-            tilt: "-rotate-1",
-            accent: "bg-mint/40",
-        },
-        {
-            label: "Daily Budget",
-            value: `USD ${trip.daily_budget.toLocaleString()}`,
-            tilt: "rotate-1",
-            accent: "bg-blush/40",
-        },
-    ];
+    const badgeClass =
+        CATEGORY_BADGE[trip.category.toLowerCase()] ?? "bg-gray-100 text-gray-600";
 
     return (
-        <div className="relative flex min-h-full flex-1 flex-col overflow-x-hidden bg-background">
-            <DoodleBackdrop />
+        <main className="min-h-screen bg-[var(--background)] px-4 py-10">
+            <div className="w-full max-w-lg mx-auto flex flex-col gap-6">
 
-            <main className="relative z-10 mx-auto flex w-full max-w-lg flex-1 flex-col px-4 py-8 sm:px-6 sm:py-12">
-                {/* Back link */}
+                <h1 className="text-2xl font-bold text-[var(--foreground)]">
+                    {trip.destination}
+                </h1>
+
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl bg-[#f0f4f8] px-5 py-4 shadow-sm flex flex-col gap-1">
+                        <span className="text-xs font-bold uppercase tracking-widest text-[#2196F3]">Destination</span>
+                        <span className="text-base text-[var(--foreground)]">{trip.destination}</span>
+                    </div>
+
+                    <div className="rounded-2xl bg-[#f0f4f8] px-5 py-4 shadow-sm flex flex-col gap-1">
+                        <span className="text-xs font-bold uppercase tracking-widest text-[#2196F3]">Budget</span>
+                        <span className="text-base text-[var(--foreground)]">USD {trip.budget.toLocaleString()}</span>
+                    </div>
+
+                    <div className="rounded-2xl bg-[#f0f4f8] px-5 py-4 shadow-sm flex flex-col gap-2">
+                        <span className="text-xs font-bold uppercase tracking-widest text-[#2196F3]">Category</span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-base text-[var(--foreground)]">
+                                {trip.category.charAt(0).toUpperCase() + trip.category.slice(1)}
+                            </span>
+                            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${badgeClass}`}>
+                                {trip.category.charAt(0).toUpperCase() + trip.category.slice(1)}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="rounded-2xl bg-[#f0f4f8] px-5 py-4 shadow-sm flex flex-col gap-1">
+                        <span className="text-xs font-bold uppercase tracking-widest text-[#2196F3]">Days</span>
+                        <span className="text-base text-[var(--foreground)]">
+                            {trip.days} {trip.days === 1 ? "day" : "days"}
+                        </span>
+                    </div>
+                </div>
+
+                {trip.ai_recommendation && (
+                    <div className="flex flex-col gap-3">
+                        <div className="flex items-center gap-3">
+                            <span className="text-xs font-bold uppercase tracking-widest text-[#2196F3]">
+                                AI Recommendation
+                            </span>
+                            <div className="flex-1 border-t border-gray-200" />
+                        </div>
+                        <DayCards text={trip.ai_recommendation} />
+                    </div>
+                )}
+
                 <Link
                     href="/trips"
-                    className="mb-6 inline-flex w-fit items-center gap-1 font-hand text-lg font-semibold text-ink underline decoration-wavy decoration-sky underline-offset-4 hover:text-sky"
+                    className="mt-2 w-full rounded-2xl border border-[#2196F3] text-[#2196F3] hover:bg-[#e3f0fd] active:bg-[#bbdefb] font-semibold text-sm tracking-wide py-4 transition-colors duration-150 shadow-sm text-center"
                 >
                     ← Back to Trip History
                 </Link>
 
-                {/* Hero image */}
-                <div className="relative">
-                    <div className="rough-cut relative -rotate-1 aspect-video w-full bg-mint/40 sm:aspect-2/1">
-                        <Image
-                            src={heroUrl}
-                            alt={`${trip.destination} travel destination`}
-                            fill
-                            priority
-                            unoptimized
-                            className="object-cover"
-                            sizes="(max-width: 640px) 100vw, 512px"
-                        />
-                    </div>
-                    <div className="absolute -bottom-3 left-3 rotate-2 sketch-border bg-sun px-3 py-1 shadow-[3px_3px_0_#1c1917] sm:left-5">
-                        <p className="font-hand text-xl font-bold text-ink sm:text-2xl">
-                            {trip.destination}
-                        </p>
-                    </div>
-                    <Star className="absolute -right-1 -top-2 h-8 w-8 text-sun float-doodle" />
-                </div>
-
-                {/* Detail grid */}
-                <div className="mt-8 grid grid-cols-2 gap-3">
-                    {details.map((d) => (
-                        <div
-                            key={d.label}
-                            className={`sketch-border px-4 py-3 ${d.accent} ${d.tilt}`}
-                        >
-                            <p className="font-hand text-lg font-semibold text-ink/70">
-                                {d.label}
-                            </p>
-                            <p className="mt-0.5 text-base font-semibold text-ink">
-                                {d.value}
-                            </p>
-                        </div>
-                    ))}
-                </div>
-
-                {/* AI Recommendation */}
-                {trip.ai_recommendation && (
-                    <section className="relative mt-8">
-                        <div className="mb-4 -rotate-2">
-                            <h2 className="font-hand text-3xl font-bold text-ink sm:text-4xl">
-                                AI Recommendation
-                            </h2>
-                            <Squiggle className="mt-1 h-3 w-36 text-sky" />
-                        </div>
-
-                        <DayCards text={trip.ai_recommendation} />
-                    </section>
-                )}
-
-                {/* Back home */}
-                <div className="mt-8">
-                    <Link
-                        href="/"
-                        className="sketch-btn w-full px-4 py-3 text-center text-2xl"
-                    >
-                        Plan Another Trip
-                    </Link>
-                </div>
-            </main>
-
-            <footer className="relative z-10 mt-auto px-4 py-8 text-center">
-                <PlaneDoodle className="mx-auto mb-3 h-8 w-8 text-ink/30" />
-                <p className="font-hand text-xl text-ink">
-                    © {new Date().getFullYear()} Made by Hasnat Ferdiananda
-                </p>
-            </footer>
-        </div>
+            </div>
+        </main>
     );
 }

@@ -3,17 +3,24 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 
-# Always load the env file that sits next to this module.
+# load .env so os.getenv() can read it
 load_dotenv()
-DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    raise ValueError("DATABASE_URL is not set in backend/.env")
 
+# connection string from .env — never hardcode secrets
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+# engine = the connection pool
 engine = create_engine(DATABASE_URL)
+
+# SessionLocal = a factory for DB sessions
 SessionLocal = sessionmaker(bind=engine, autoflush=False)
 
+# Base = all ORM models inherit from this
 Base = declarative_base()
 
 def init_db() -> None:
     """Create all SQLAlchemy tables for the configured database."""
+    # import all models so their metadata is registered before create_all
+    import models.user  
+    import models.trip 
     Base.metadata.create_all(bind=engine)

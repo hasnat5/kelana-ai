@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   DoodleBackdrop,
   Star,
@@ -55,6 +56,15 @@ export default function Home() {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+
+  // Guard: redirect to /login if not authenticated
+  useEffect(() => {
+    if (!localStorage.getItem("access_token")) {
+      router.replace("/login");
+    }
+  }, [router]);
 
   function updateField<K extends keyof TripForm>(key: K, value: TripForm[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -66,9 +76,13 @@ export default function Home() {
     setError(null);
 
     try {
+      const token = localStorage.getItem("access_token");
       const response = await fetch("http://localhost:8000/api/v1/trips", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           destination: form.destination,
           budget: Number(form.budget),
