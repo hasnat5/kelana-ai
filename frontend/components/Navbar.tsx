@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 const NAV_LINKS = [
     { href: "/", label: "Plan a Trip" },
+    { href: "/assistant", label: "Ask" },
     { href: "/trips", label: "My Trips" },
 ];
 
@@ -18,8 +19,12 @@ export default function Navbar() {
 
     // Sync login state on every route change
     useEffect(() => {
-        setLoggedIn(!!localStorage.getItem("access_token"));
-        setMenuOpen(false);
+        const syncMenu = window.setTimeout(() => {
+            setLoggedIn(!!localStorage.getItem("access_token"));
+            setMenuOpen(false);
+        }, 0);
+
+        return () => window.clearTimeout(syncMenu);
     }, [pathname]);
 
     // Close dropdown when clicking outside
@@ -63,8 +68,8 @@ export default function Navbar() {
                             key={href}
                             href={href}
                             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors duration-150 ${isActive(href)
-                                    ? "bg-[#2196F3] text-white"
-                                    : "text-gray-500 hover:text-[#2196F3] hover:bg-[#e3f0fd]"
+                                ? "bg-[#2196F3] text-white"
+                                : "text-gray-500 hover:text-[#2196F3] hover:bg-[#e3f0fd]"
                                 }`}
                         >
                             {label}

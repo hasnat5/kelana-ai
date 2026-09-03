@@ -1,3 +1,4 @@
+from services.kb_service import retrieve_and_generate
 from services.auth_service import register_user, login_user, get_current_user
 from services.trip_service import calculate_daily_budget, get_trip_category, get_recommended_places, get_transportation_recommendation, get_travel_season
 from fastapi import FastAPI, HTTPException, Depends
@@ -49,6 +50,10 @@ class LoginRequest(BaseModel):
         if "@" not in v or "." not in v.split("@")[-1]:
             raise ValueError("Invalid email address")
         return v.lower().strip()
+
+class AskRequest(BaseModel):
+    question: str
+
 
 app = FastAPI()
 
@@ -128,6 +133,18 @@ def get_recommendations():
 def get_trip_categories():
     return ["Backpacker", "Standard", "Luxury"]
 
+
+@app.post("/api/v1/ask")
+def ask(request: AskRequest):
+    try:
+        result = retrieve_and_generate(request.question)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {
+        "question": request.question,
+        "answer": result["answer"],
+        "source": result["source"],
+    }
 
 @app.post("/api/v1/trips")
 def create_trip(request: TripRequest, current_user: User = Depends(get_current_user),):
