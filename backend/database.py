@@ -23,4 +23,5 @@ def init_db() -> None:
     # import all models so their metadata is registered before create_all
     import models.user  
     import models.trip 
+    import models.conversation
     Base.metadata.create_all(bind=engine)
