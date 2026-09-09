@@ -3,6 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { login, register } from "@/services/authService";
+import {
+    DoodleBackdrop,
+    Heart,
+    PlaneDoodle,
+    Squiggle,
+    Star,
+} from "@/components/Doodles";
 
 type Mode = "login" | "register";
 
@@ -87,7 +94,7 @@ export default function LoginPage() {
         setShowConfirm(false);
     }
 
-    async function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
         setServerError(null);
 
@@ -117,36 +124,41 @@ export default function LoginPage() {
     }
 
     return (
-        <main className="flex-1 flex flex-col items-center justify-center px-4 py-10 bg-[var(--background)]">
+        <main className="relative flex flex-1 flex-col items-center justify-center overflow-x-hidden bg-background px-4 py-10">
+            <DoodleBackdrop />
+
             {/* Header */}
-            <div className="mb-8 text-center flex flex-col gap-1">
-                <h2 className="text-2xl font-bold text-[var(--foreground)]">
+            <div className="relative z-10 mb-8 flex flex-col items-center gap-1 text-center">
+                <Star className="absolute -left-8 top-0 h-6 w-6 text-sun float-doodle" />
+                <Heart className="absolute -right-8 top-2 h-5 w-5 text-blush float-doodle" />
+                <h2 className="font-hand text-4xl font-bold leading-none text-ink -rotate-1 sm:text-5xl">
                     {mode === "login" ? (
-                        <>Your next adventure <span className="text-[#2196F3]">awaits.</span></>
+                        <>Your next adventure <span className="text-sky">awaits.</span></>
                     ) : (
-                        <>The world is yours to <span className="text-[#2196F3]">explore.</span></>
+                        <>The world is yours to <span className="text-sky">explore.</span></>
                     )}
                 </h2>
-                <p className="text-sm text-gray-400">
+                <p className="mt-2 rotate-1 font-hand text-xl text-ink/60">
                     {mode === "login"
-                        ? "Sign in and pick up where you left off."
-                        : "Create an account to start planning."}
+                        ? "Sign in and pick up where you left off ~"
+                        : "Create an account to start planning ~"}
                 </p>
+                <Squiggle className="mt-2 h-3 w-28 text-sky" />
             </div>
 
             {/* Form */}
             <form
                 onSubmit={handleSubmit}
                 noValidate
-                className="w-full max-w-lg flex flex-col gap-3"
+                className="relative z-10 flex w-full max-w-lg flex-col gap-4"
             >
                 {/* Name — register only */}
                 {mode === "register" && (
                     <div className="flex flex-col gap-1">
-                        <div className="rounded-2xl bg-[#f0f4f8] px-5 py-4 flex flex-col gap-1 shadow-sm">
+                        <div className="sketch-border flex -rotate-1 flex-col gap-1 px-5 py-3.5">
                             <label
                                 htmlFor="name"
-                                className="text-xs font-bold uppercase tracking-widest text-[#2196F3]"
+                                className="font-hand text-lg font-semibold text-ink/70"
                             >
                                 Name
                             </label>
@@ -158,21 +170,21 @@ export default function LoginPage() {
                                 value={form.name}
                                 onChange={handleChange}
                                 autoComplete="name"
-                                className="bg-transparent text-base text-[var(--foreground)] placeholder-gray-400 outline-none"
+                                className="bg-transparent text-base text-ink placeholder:text-ink/35 outline-none"
                             />
                         </div>
                         {fieldErrors.name && (
-                            <p className="text-xs text-red-500 px-1">{fieldErrors.name}</p>
+                            <p className="px-1 text-xs font-semibold text-red-500">{fieldErrors.name}</p>
                         )}
                     </div>
                 )}
 
                 {/* Email */}
                 <div className="flex flex-col gap-1">
-                    <div className="rounded-2xl bg-[#f0f4f8] px-5 py-4 flex flex-col gap-1 shadow-sm">
+                    <div className="sketch-border flex rotate-1 flex-col gap-1 px-5 py-3.5">
                         <label
                             htmlFor="email"
-                            className="text-xs font-bold uppercase tracking-widest text-[#2196F3]"
+                            className="font-hand text-lg font-semibold text-ink/70"
                         >
                             Email
                         </label>
@@ -184,20 +196,20 @@ export default function LoginPage() {
                             value={form.email}
                             onChange={handleChange}
                             autoComplete="email"
-                            className="bg-transparent text-base text-[var(--foreground)] placeholder-gray-400 outline-none"
+                            className="bg-transparent text-base text-ink placeholder:text-ink/35 outline-none"
                         />
                     </div>
                     {fieldErrors.email && (
-                        <p className="text-xs text-red-500 px-1">{fieldErrors.email}</p>
+                        <p className="px-1 text-xs font-semibold text-red-500">{fieldErrors.email}</p>
                     )}
                 </div>
 
                 {/* Password */}
                 <div className="flex flex-col gap-1">
-                    <div className="rounded-2xl bg-[#f0f4f8] px-5 py-4 flex flex-col gap-1 shadow-sm">
+                    <div className="sketch-border flex -rotate-1 flex-col gap-1 px-5 py-3.5">
                         <label
                             htmlFor="password"
-                            className="text-xs font-bold uppercase tracking-widest text-[#2196F3]"
+                            className="font-hand text-lg font-semibold text-ink/70"
                         >
                             Password
                         </label>
@@ -210,13 +222,13 @@ export default function LoginPage() {
                                 value={form.password}
                                 onChange={handleChange}
                                 autoComplete={mode === "login" ? "current-password" : "new-password"}
-                                className="flex-1 bg-transparent text-base text-[var(--foreground)] placeholder-gray-400 outline-none"
+                                className="flex-1 bg-transparent text-base text-ink placeholder:text-ink/35 outline-none"
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword((v) => !v)}
                                 aria-label={showPassword ? "Hide password" : "Show password"}
-                                className="text-gray-400 hover:text-[#2196F3] transition-colors duration-150 cursor-pointer"
+                                className="text-ink/40 hover:text-sky transition-colors duration-150 cursor-pointer"
                             >
                                 {showPassword ? (
                                     // Eye-off
@@ -233,17 +245,17 @@ export default function LoginPage() {
                         </div>
                     </div>
                     {fieldErrors.password && (
-                        <p className="text-xs text-red-500 px-1">{fieldErrors.password}</p>
+                        <p className="px-1 text-xs font-semibold text-red-500">{fieldErrors.password}</p>
                     )}
                 </div>
 
                 {/* Confirm password — register only */}
                 {mode === "register" && (
                     <div className="flex flex-col gap-1">
-                        <div className="rounded-2xl bg-[#f0f4f8] px-5 py-4 flex flex-col gap-1 shadow-sm">
+                        <div className="sketch-border flex rotate-1 flex-col gap-1 px-5 py-3.5">
                             <label
                                 htmlFor="confirmPassword"
-                                className="text-xs font-bold uppercase tracking-widest text-[#2196F3]"
+                                className="font-hand text-lg font-semibold text-ink/70"
                             >
                                 Confirm Password
                             </label>
@@ -256,13 +268,13 @@ export default function LoginPage() {
                                     value={form.confirmPassword}
                                     onChange={handleChange}
                                     autoComplete="new-password"
-                                    className="flex-1 bg-transparent text-base text-[var(--foreground)] placeholder-gray-400 outline-none"
+                                    className="flex-1 bg-transparent text-base text-ink placeholder:text-ink/35 outline-none"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowConfirm((v) => !v)}
                                     aria-label={showConfirm ? "Hide password" : "Show password"}
-                                    className="text-gray-400 hover:text-[#2196F3] transition-colors duration-150 cursor-pointer"
+                                    className="text-ink/40 hover:text-sky transition-colors duration-150 cursor-pointer"
                                 >
                                     {showConfirm ? (
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5" aria-hidden="true">
@@ -277,7 +289,7 @@ export default function LoginPage() {
                             </div>
                         </div>
                         {fieldErrors.confirmPassword && (
-                            <p className="text-xs text-red-500 px-1">
+                            <p className="px-1 text-xs font-semibold text-red-500">
                                 {fieldErrors.confirmPassword}
                             </p>
                         )}
@@ -286,7 +298,12 @@ export default function LoginPage() {
 
                 {/* Server error */}
                 {serverError && (
-                    <div className="rounded-2xl bg-red-50 border border-red-200 px-5 py-4 text-sm text-red-600">
+                    <div
+                        role="alert"
+                        className="sketch-border rotate-1 bg-blush/60 px-5 py-4 text-center text-sm font-semibold text-ink"
+                    >
+                        <span className="font-hand text-lg">oops!</span>
+                        <br />
                         {serverError}
                     </div>
                 )}
@@ -295,26 +312,29 @@ export default function LoginPage() {
                 <button
                     type="submit"
                     disabled={pending}
-                    className="mt-2 w-full rounded-2xl bg-[#2196F3] hover:bg-[#1976D2] active:bg-[#1565C0] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm tracking-wide py-4 transition-colors duration-150 shadow-sm cursor-pointer"
+                    className="mt-2 flex w-full items-center justify-center gap-2 sketch-btn px-4 py-3 text-2xl"
                 >
-                    {pending
-                        ? mode === "login"
-                            ? "Signing in…"
-                            : "Creating account…"
-                        : mode === "login"
-                            ? "Sign In"
-                            : "Create Account"}
+                    {pending ? (
+                        <>
+                            <PlaneDoodle className="h-5 w-5 wobble text-ink" />
+                            {mode === "login" ? "Signing in…" : "Creating account…"}
+                        </>
+                    ) : mode === "login" ? (
+                        "Sign In"
+                    ) : (
+                        "Create Account"
+                    )}
                 </button>
 
                 {/* Toggle mode */}
-                <p className="text-center text-sm text-gray-400 mt-1">
+                <p className="mt-1 text-center font-hand text-lg text-ink/60">
                     {mode === "login" ? (
                         <>
                             Don&apos;t have an account?{" "}
                             <button
                                 type="button"
                                 onClick={() => switchMode("register")}
-                                className="text-[#2196F3] font-medium hover:underline"
+                                className="font-semibold text-sky underline decoration-wavy underline-offset-4 hover:text-ink"
                             >
                                 Register
                             </button>
@@ -325,7 +345,7 @@ export default function LoginPage() {
                             <button
                                 type="button"
                                 onClick={() => switchMode("login")}
-                                className="text-[#2196F3] font-medium hover:underline"
+                                className="font-semibold text-sky underline decoration-wavy underline-offset-4 hover:text-ink"
                             >
                                 Sign In
                             </button>
