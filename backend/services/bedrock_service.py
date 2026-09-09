@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 import boto3
 from dotenv import load_dotenv
@@ -17,6 +18,8 @@ TRAVEL_PLANNER_PROMPT = (
     "You are an experienced travel planner.\n"
     "Plan a {days}-day itinerary for {destination}.\n"
     "Budget: USD {budget}\n"
+    "Travel Month: {month}\n"
+    "Travel Season: {travel_season}\n"
     "Travel Style: {travel_style}.\n"
     "Give the answer with markdown format."
 )
@@ -48,6 +51,8 @@ def get_ai_recommendation(
     days: int,
     budget: float,
     travel_style: str,
+    month: Optional[str] = None,
+    travel_season: Optional[str] = None,
 ) -> str:
     """
     Call Amazon Bedrock with the travel-planner prompt and return the
@@ -59,6 +64,8 @@ def get_ai_recommendation(
         budget:       Total budget in USD.
         travel_style: Free-text style description (e.g. "backpacker",
                       "luxury", "family").
+        month:        Month the traveller plans to visit (e.g. "June").
+        travel_season: Derived season label (e.g. "dry", "monsoon").
 
     Returns:
         The model's text response.
@@ -72,6 +79,8 @@ def get_ai_recommendation(
         destination=destination,
         budget=budget,
         travel_style=travel_style,
+        month=month or "not specified",
+        travel_season=travel_season or "not specified",
     )
 
     client = get_bedrock_client()
