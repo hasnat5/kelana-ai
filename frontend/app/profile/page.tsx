@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { DoodleBackdrop, Heart, Star, Squiggle } from "@/components/Doodles";
 import { getMe, type MeResponse } from "@/services/authService";
 
 export default function ProfilePage() {
@@ -25,8 +26,14 @@ export default function ProfilePage() {
 
     if (error) {
         return (
-            <main className="flex-1 flex items-center justify-center px-4 bg-[var(--background)]">
-                <div className="w-full max-w-lg rounded-2xl bg-red-50 border border-red-200 px-5 py-4 text-sm text-red-600">
+            <main className="relative flex flex-1 items-center justify-center px-4 py-10 bg-background">
+                <DoodleBackdrop />
+                <div
+                    role="alert"
+                    className="sketch-border relative z-10 w-full max-w-lg rotate-1 bg-blush/60 px-5 py-4 text-center text-sm font-semibold text-ink"
+                >
+                    <span className="font-hand text-lg">oops!</span>
+                    <br />
                     {error}
                 </div>
             </main>
@@ -35,8 +42,14 @@ export default function ProfilePage() {
 
     if (!user) {
         return (
-            <main className="flex-1 flex items-center justify-center bg-[var(--background)]">
-                <div className="w-8 h-8 rounded-full border-4 border-[#e3f0fd] border-t-[#2196F3] animate-spin" />
+            <main className="relative flex flex-1 items-center justify-center bg-background">
+                <DoodleBackdrop />
+                <div className="sketch-border-thick relative z-10 -rotate-1 px-8 py-10 text-center">
+                    <Heart className="mx-auto h-12 w-12 wobble text-blush" />
+                    <p className="mt-4 font-hand text-2xl text-ink">
+                        flipping through your notebook...
+                    </p>
+                </div>
             </main>
         );
     }
@@ -54,26 +67,45 @@ export default function ProfilePage() {
     });
 
     return (
-        <main className="flex-1 flex flex-col items-center px-4 py-10 bg-[var(--background)]">
-            <div className="w-full max-w-lg flex flex-col gap-4">
+        <main className="relative flex flex-1 flex-col items-center overflow-x-hidden px-4 py-10 bg-background">
+            <DoodleBackdrop />
+
+            <div className="relative z-10 flex w-full max-w-lg flex-col gap-6">
 
                 {/* Avatar + name */}
-                <div className="flex flex-col items-center gap-3 py-6">
-                    <div className="w-16 h-16 rounded-full bg-[#2196F3] flex items-center justify-center text-white text-xl font-bold select-none">
-                        {initials}
+                <div className="relative flex flex-col items-center gap-3 py-6">
+                    <Star className="absolute left-2 top-0 h-5 w-5 text-sun float-doodle" />
+                    <Star className="absolute right-4 top-8 h-4 w-4 text-blush float-doodle" />
+                    <div className="sketch-border-thick flex h-20 w-20 -rotate-2 items-center justify-center bg-sun select-none shadow-[3px_3px_0_#1c1917]">
+                        <span className="font-hand text-3xl font-bold text-ink">
+                            {initials}
+                        </span>
                     </div>
                     <div className="text-center">
-                        <h1 className="text-xl font-bold text-[var(--foreground)]">
+                        <h1 className="font-hand text-4xl font-bold leading-none text-ink -rotate-1">
                             {user.name}
                         </h1>
-                        <p className="text-sm text-gray-400">Member since {joinedDate}</p>
+                        <p className="mt-2 rotate-1 font-hand text-xl text-ink/60">
+                            Member since {joinedDate}
+                        </p>
+                        <Squiggle className="mx-auto mt-2 h-3 w-28 text-sky" />
                     </div>
                 </div>
 
                 {/* Info cards */}
-                <div className="rounded-2xl bg-[#f0f4f8] divide-y divide-gray-200 shadow-sm overflow-hidden">
-                    <Row label="Email" value={user.email} />
-                    <Row label="Trips generated" value={String(user.total_trips)} />
+                <div className="flex flex-col gap-4">
+                    <Row
+                        label="Email"
+                        value={user.email}
+                        tilt="-rotate-1"
+                        accent="bg-mint/50"
+                    />
+                    <Row
+                        label="Trips generated"
+                        value={String(user.total_trips)}
+                        tilt="rotate-1"
+                        accent="bg-blush/50"
+                    />
                 </div>
 
             </div>
@@ -81,13 +113,25 @@ export default function ProfilePage() {
     );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({
+    label,
+    value,
+    tilt = "",
+    accent = "bg-paper",
+}: {
+    label: string;
+    value: string;
+    tilt?: string;
+    accent?: string;
+}) {
     return (
-        <div className="flex items-center justify-between px-5 py-4">
-            <span className="text-xs font-bold uppercase tracking-widest text-[#2196F3]">
+        <div className={`sketch-border flex items-center justify-between gap-4 px-5 py-4 ${accent} ${tilt}`}>
+            <span className="font-hand text-lg font-semibold text-ink/70">
                 {label}
             </span>
-            <span className="text-sm text-[var(--foreground)]">{value}</span>
+            <span className="text-sm font-semibold text-ink break-all text-right">
+                {value}
+            </span>
         </div>
     );
 }

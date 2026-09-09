@@ -71,9 +71,13 @@ def retrieve_and_generate(query: str) -> dict:
     sources = []
     seen_sources = set()
 
+    # This knowledge base returns relevance scores in a compressed
+    # ~0.45-0.68 band (even off-topic queries land there), so the threshold
+    # only filters obvious noise -- it cannot distinguish on-topic from
+    # off-topic. Keep it low or every result gets dropped.
     for result in results:
         score = result.get("score") or 0
-        if score <= 0.85:
+        if score <= 0.3:
             continue
         
         content = result.get("content", {})

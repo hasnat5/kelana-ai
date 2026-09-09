@@ -5,17 +5,20 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getTrip, type Trip } from "@/services/tripService";
 import DayCards from "@/components/DayCards";
+import { DoodleBackdrop, PlaneDoodle, Star, Squiggle } from "@/components/Doodles";
 
+// Hand-drawn accent per category — maps to the doodle palette.
 const CATEGORY_BADGE: Record<string, string> = {
-    backpacker: "bg-orange-100 text-orange-600",
-    luxury: "bg-green-100 text-green-600",
-    standard: "bg-blue-100 text-blue-600",
+    backpacker: "bg-mint/70 text-ink",
+    luxury: "bg-sun/80 text-ink",
+    standard: "bg-sky/60 text-ink",
 };
 
 export default function TripDetailPage() {
     const router = useRouter();
     const params = useParams();
     const tripId = Number(params.id);
+    const invalidId = Number.isNaN(tripId);
 
     const [trip, setTrip] = useState<Trip | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -27,27 +30,27 @@ export default function TripDetailPage() {
             return;
         }
 
-        if (isNaN(tripId)) {
-            setError("Invalid trip ID.");
-            return;
-        }
+        if (Number.isNaN(tripId)) return;
 
         getTrip(tripId, token)
             .then(setTrip)
             .catch((err) => setError(err instanceof Error ? err.message : "Trip not found."));
     }, [tripId, router]);
 
-    if (error) {
+    if (invalidId || error) {
         return (
-            <main className="flex-1 flex flex-col items-center px-4 py-10 bg-[var(--background)]">
-                <div className="w-full max-w-lg flex flex-col gap-4">
-                    <div className="rounded-2xl bg-red-50 border border-red-200 px-5 py-4 text-sm text-red-600">
-                        {error}
-                    </div>
-                    <Link
-                        href="/trips"
-                        className="w-full rounded-2xl border border-[#2196F3] text-[#2196F3] hover:bg-[#e3f0fd] font-semibold text-sm tracking-wide py-4 transition-colors duration-150 shadow-sm text-center"
+            <main className="relative flex min-h-screen flex-col items-center overflow-x-hidden bg-background px-4 py-10">
+                <DoodleBackdrop />
+                <div className="relative z-10 flex w-full max-w-lg flex-col gap-4">
+                    <div
+                        role="alert"
+                        className="sketch-border rotate-1 bg-blush/60 px-5 py-4 text-center text-sm font-semibold text-ink"
                     >
+                        <span className="font-hand text-lg">oops!</span>
+                        <br />
+                        {invalidId ? "Invalid trip ID." : error}
+                    </div>
+                    <Link href="/trips" className="sketch-btn w-full px-4 py-3 text-xl">
                         ← Back to Trip History
                     </Link>
                 </div>
@@ -57,74 +60,110 @@ export default function TripDetailPage() {
 
     if (!trip) {
         return (
-            <main className="flex-1 flex items-center justify-center bg-[var(--background)]">
-                <div className="w-8 h-8 rounded-full border-4 border-[#e3f0fd] border-t-[#2196F3] animate-spin" />
+            <main className="relative flex min-h-screen items-center justify-center overflow-x-hidden bg-background">
+                <DoodleBackdrop />
+                <div className="sketch-border-thick relative z-10 -rotate-1 px-8 py-10 text-center">
+                    <PlaneDoodle className="mx-auto h-12 w-12 wobble text-ink" />
+                    <p className="mt-4 font-hand text-2xl text-ink">
+                        digging up your itinerary...
+                    </p>
+                </div>
             </main>
         );
     }
 
     const badgeClass =
-        CATEGORY_BADGE[trip.category.toLowerCase()] ?? "bg-gray-100 text-gray-600";
+        CATEGORY_BADGE[trip.category.toLowerCase()] ?? "bg-blush/60 text-ink";
 
     return (
-        <main className="min-h-screen bg-[var(--background)] px-4 py-10">
-            <div className="w-full max-w-lg mx-auto flex flex-col gap-6">
+        <main className="relative min-h-screen overflow-x-hidden bg-background px-4 py-10">
+            <DoodleBackdrop />
 
-                <h1 className="text-2xl font-bold text-[var(--foreground)]">
-                    {trip.destination}
-                </h1>
+            <div className="relative z-10 mx-auto flex w-full max-w-lg flex-col gap-6">
 
-                <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-2xl bg-[#f0f4f8] px-5 py-4 shadow-sm flex flex-col gap-1">
-                        <span className="text-xs font-bold uppercase tracking-widest text-[#2196F3]">Destination</span>
-                        <span className="text-base text-[var(--foreground)]">{trip.destination}</span>
-                    </div>
+                <header className="relative">
+                    <Star className="absolute -left-1 -top-1 h-6 w-6 text-sun float-doodle" />
+                    <h1 className="font-hand text-4xl font-bold leading-none text-ink -rotate-1">
+                        {trip.destination}
+                    </h1>
+                    <p className="mt-2 rotate-1 font-hand text-xl text-ink/60">
+                        {trip.days} {trip.days === 1 ? "day" : "days"} of adventure ~
+                    </p>
+                    <Squiggle className="mt-2 h-3 w-28 text-sky" />
+                </header>
 
-                    <div className="rounded-2xl bg-[#f0f4f8] px-5 py-4 shadow-sm flex flex-col gap-1">
-                        <span className="text-xs font-bold uppercase tracking-widest text-[#2196F3]">Budget</span>
-                        <span className="text-base text-[var(--foreground)]">USD {trip.budget.toLocaleString()}</span>
-                    </div>
-
-                    <div className="rounded-2xl bg-[#f0f4f8] px-5 py-4 shadow-sm flex flex-col gap-2">
-                        <span className="text-xs font-bold uppercase tracking-widest text-[#2196F3]">Category</span>
-                        <div className="flex items-center gap-2">
-                            <span className="text-base text-[var(--foreground)]">
-                                {trip.category.charAt(0).toUpperCase() + trip.category.slice(1)}
-                            </span>
-                            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${badgeClass}`}>
-                                {trip.category.charAt(0).toUpperCase() + trip.category.slice(1)}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="rounded-2xl bg-[#f0f4f8] px-5 py-4 shadow-sm flex flex-col gap-1">
-                        <span className="text-xs font-bold uppercase tracking-widest text-[#2196F3]">Days</span>
-                        <span className="text-base text-[var(--foreground)]">
-                            {trip.days} {trip.days === 1 ? "day" : "days"}
-                        </span>
-                    </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <DetailCard
+                        label="Destination"
+                        value={trip.destination}
+                        tilt="-rotate-1"
+                        accent="bg-mint/50"
+                    />
+                    <DetailCard
+                        label="Budget"
+                        value={`USD ${trip.budget.toLocaleString()}`}
+                        tilt="rotate-1"
+                        accent="bg-blush/50"
+                    />
+                    <DetailCard
+                        label="Category"
+                        value={trip.category.charAt(0).toUpperCase() + trip.category.slice(1)}
+                        badgeClass={badgeClass}
+                        tilt="rotate-1"
+                        accent="bg-sky/30"
+                    />
+                    <DetailCard
+                        label="Days"
+                        value={`${trip.days} ${trip.days === 1 ? "day" : "days"}`}
+                        tilt="-rotate-1"
+                        accent="bg-paper"
+                    />
                 </div>
 
                 {trip.ai_recommendation && (
-                    <div className="flex flex-col gap-3">
-                        <div className="flex items-center gap-3">
-                            <span className="text-xs font-bold uppercase tracking-widest text-[#2196F3]">
+                    <section className="flex flex-col gap-3">
+                        <div className="-rotate-2">
+                            <h2 className="font-hand text-3xl font-bold text-ink">
                                 AI Recommendation
-                            </span>
-                            <div className="flex-1 border-t border-gray-200" />
+                            </h2>
+                            <Squiggle className="mt-1 h-3 w-36 text-sky" />
                         </div>
                         <DayCards text={trip.ai_recommendation} />
-                    </div>
+                    </section>
                 )}
 
-                <Link
-                    href="/trips"
-                    className="mt-2 w-full rounded-2xl border border-[#2196F3] text-[#2196F3] hover:bg-[#e3f0fd] active:bg-[#bbdefb] font-semibold text-sm tracking-wide py-4 transition-colors duration-150 shadow-sm text-center"
-                >
+                <Link href="/trips" className="sketch-btn mt-2 w-full px-4 py-3 text-2xl">
                     ← Back to Trip History
                 </Link>
 
             </div>
         </main>
+    );
+}
+
+function DetailCard({
+    label,
+    value,
+    badgeClass,
+    tilt = "",
+    accent = "bg-paper",
+}: {
+    label: string;
+    value: string;
+    badgeClass?: string;
+    tilt?: string;
+    accent?: string;
+}) {
+    return (
+        <div className={`sketch-border relative px-4 py-3.5 ${accent} ${tilt}`}>
+            <p className="font-hand text-lg font-semibold text-ink/70">{label}</p>
+            {badgeClass ? (
+                <span className={`mt-0.5 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${badgeClass}`}>
+                    {value}
+                </span>
+            ) : (
+                <p className="mt-0.5 text-base font-semibold text-ink">{value}</p>
+            )}
+        </div>
     );
 }

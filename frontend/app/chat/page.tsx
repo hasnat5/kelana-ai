@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
+import { DoodleBackdrop, Heart, PlaneDoodle, Star } from "@/components/Doodles";
 import {
     createConversation,
     deleteConversation,
@@ -261,7 +262,7 @@ export default function ChatPage() {
         }
     }
 
-    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
         if (!token || !canSend) return;
 
@@ -305,17 +306,19 @@ export default function ChatPage() {
     }
 
     return (
-        <main className="flex-1 bg-[#f7fafc] px-3 py-4">
-            <div className="mx-auto flex h-[calc(100vh-8rem)] min-h-[620px] max-w-6xl overflow-hidden rounded-lg border border-[#d7e5f1] bg-white shadow-sm">
-                <aside className="hidden w-72 shrink-0 border-r border-[#d7e5f1] bg-[#f0f4f8] md:flex md:flex-col">
-                    <div className="border-b border-[#d7e5f1] p-3">
+        <main className="relative flex-1 overflow-x-hidden bg-background px-3 py-4">
+            <DoodleBackdrop />
+
+            <div className="relative z-10 mx-auto flex h-[calc(100vh-8rem)] min-h-155 max-w-6xl flex-col overflow-hidden sketch-border-thick shadow-[5px_5px_0_rgba(28,25,23,0.15)] md:flex-row">
+                <aside className="hidden w-72 shrink-0 flex-col border-r-2 border-dashed border-ink/20 bg-mint/30 md:flex">
+                    <div className="border-b-2 border-dashed border-ink/20 p-3">
                         <button
                             type="button"
                             onClick={handleNewConversation}
-                            className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#2196F3] px-3 text-sm font-semibold text-white transition-colors hover:bg-[#1976D2] disabled:cursor-not-allowed disabled:bg-gray-300"
+                            className="sketch-btn w-full px-3 py-2 text-lg"
                             disabled={!token}
                         >
-                            <span aria-hidden="true" className="text-lg leading-none">+</span>
+                            <span aria-hidden="true" className="mr-1">+</span>
                             New Chat
                         </button>
                     </div>
@@ -323,12 +326,14 @@ export default function ChatPage() {
                     <div className="min-h-0 flex-1 overflow-y-auto p-2">
                         {loadingConversations ? (
                             <div className="flex h-24 items-center justify-center">
-                                <div className="h-6 w-6 animate-spin rounded-full border-4 border-[#d7e5f1] border-t-[#2196F3]" />
+                                <PlaneDoodle className="h-8 w-8 wobble text-ink/60" />
                             </div>
                         ) : conversations.length === 0 ? (
-                            <p className="px-3 py-4 text-sm text-gray-500">No conversations yet</p>
+                            <p className="px-3 py-4 text-center font-hand text-lg text-ink/60">
+                                No conversations yet ~
+                            </p>
                         ) : (
-                            <div className="flex flex-col gap-1">
+                            <div className="flex flex-col gap-2">
                                 {conversations.map((conversation) => {
                                     const active = conversation.id === activeConversationId;
                                     const editing = conversation.id === editingConversationId;
@@ -341,7 +346,7 @@ export default function ChatPage() {
                                         return (
                                             <div
                                                 key={conversation.id}
-                                                className="rounded-lg bg-white p-2 shadow-sm"
+                                                className="sketch-border rotate-1 p-2"
                                             >
                                                 <label
                                                     htmlFor={`conversation-title-${conversation.id}`}
@@ -364,13 +369,13 @@ export default function ChatPage() {
                                                     }}
                                                     maxLength={100}
                                                     autoFocus
-                                                    className="h-9 w-full rounded-md border border-[#d7e5f1] bg-white px-2 text-sm text-[var(--foreground)] outline-none focus:border-[#2196F3]"
+                                                    className="h-9 w-full bg-transparent px-2 text-sm text-ink outline-none"
                                                 />
                                                 <div className="mt-2 flex justify-end gap-1">
                                                     <button
                                                         type="button"
                                                         onClick={cancelRenaming}
-                                                        className="flex h-8 w-8 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-[#f0f4f8]"
+                                                        className="flex h-8 w-8 items-center justify-center text-ink/50 transition-colors hover:text-ink"
                                                         aria-label="Cancel rename"
                                                     >
                                                         <svg
@@ -387,7 +392,7 @@ export default function ChatPage() {
                                                         type="button"
                                                         onClick={() => handleRenameConversation(conversation.id)}
                                                         disabled={savingTitle}
-                                                        className="flex h-8 w-8 items-center justify-center rounded-md bg-[#2196F3] text-white transition-colors hover:bg-[#1976D2] disabled:cursor-not-allowed disabled:bg-gray-300"
+                                                        className="flex h-8 w-8 items-center justify-center rounded-full bg-sky text-white transition-transform hover:-rotate-6 disabled:cursor-not-allowed disabled:opacity-50"
                                                         aria-label="Save conversation title"
                                                     >
                                                         <svg
@@ -408,9 +413,9 @@ export default function ChatPage() {
                                     return (
                                         <div
                                             key={conversation.id}
-                                            className={`group flex items-center gap-1 rounded-lg pr-1 transition-colors ${active
-                                                ? "bg-white text-[#1565C0] shadow-sm"
-                                                : "text-gray-600 hover:bg-white/80"
+                                            className={`group flex items-center gap-1 rounded-lg pr-1 transition-transform ${active
+                                                ? "sketch-border -rotate-1 bg-sun/50"
+                                                : "hover:-rotate-1 hover:bg-paper/80"
                                                 }`}
                                         >
                                             <button
@@ -418,17 +423,17 @@ export default function ChatPage() {
                                                 onClick={() => handleSelectConversation(conversation.id)}
                                                 className="min-w-0 flex-1 px-3 py-2 text-left"
                                             >
-                                                <span className="block truncate text-sm font-semibold">
+                                                <span className={`block truncate text-sm font-semibold ${active ? "text-ink" : "text-ink/80"}`}>
                                                     {label}
                                                 </span>
-                                                <span className="mt-1 block text-xs text-gray-400">
+                                                <span className="mt-1 block text-xs text-ink/45">
                                                     {formatConversationDate(conversation.created_at)}
                                                 </span>
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => startRenaming(conversation)}
-                                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-gray-400 opacity-100 transition-colors hover:bg-[#e3f0fd] hover:text-[#1976D2] md:opacity-0 md:group-hover:opacity-100"
+                                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-ink/40 opacity-100 transition-colors hover:bg-sky/30 hover:text-ink md:opacity-0 md:group-hover:opacity-100"
                                                 aria-label="Rename conversation"
                                             >
                                                 <svg
@@ -445,7 +450,7 @@ export default function ChatPage() {
                                                 type="button"
                                                 onClick={() => handleDeleteConversation(conversation, label)}
                                                 disabled={deletingConversationId === conversation.id}
-                                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-gray-400 opacity-100 transition-colors hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:text-gray-300 md:opacity-0 md:group-hover:opacity-100"
+                                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-ink/40 opacity-100 transition-colors hover:bg-blush/70 hover:text-ink disabled:cursor-not-allowed disabled:opacity-30 md:opacity-0 md:group-hover:opacity-100"
                                                 aria-label="Delete conversation"
                                             >
                                                 <svg
@@ -467,17 +472,19 @@ export default function ChatPage() {
                 </aside>
 
                 <section className="flex min-w-0 flex-1 flex-col">
-                    <div className="flex min-h-14 items-center justify-between border-b border-[#d7e5f1] px-4">
+                    <div className="flex min-h-14 items-center justify-between border-b-2 border-dashed border-ink/20 px-4">
                         <div className="min-w-0">
-                            <h1 className="truncate text-base font-bold text-[var(--foreground)]">
+                            <h1 className="truncate font-hand text-2xl font-bold text-ink">
                                 {activeConversationLabel}
                             </h1>
-                            <p className="text-xs text-gray-400">KelanaAI Travel Assistant</p>
+                            <p className="font-hand text-base text-ink/60">
+                                KelanaAI Travel Assistant
+                            </p>
                         </div>
                         <button
                             type="button"
                             onClick={handleNewConversation}
-                            className="h-9 rounded-lg border border-[#d7e5f1] px-3 text-sm font-semibold text-[#1976D2] transition-colors hover:bg-[#e3f0fd] md:hidden"
+                            className="sketch-btn px-3 py-1.5 text-base md:hidden"
                             disabled={!token}
                         >
                             New
@@ -485,29 +492,34 @@ export default function ChatPage() {
                     </div>
 
                     {error && (
-                        <div className="border-b border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                        <div
+                            role="alert"
+                            className="border-b-2 border-dashed border-ink/20 bg-blush/60 px-4 py-3 text-center text-sm font-semibold text-ink"
+                        >
                             {error}
                         </div>
                     )}
 
-                    <div className="min-h-0 flex-1 overflow-y-auto bg-white px-4 py-5">
+                    <div className="min-h-0 flex-1 overflow-y-auto bg-paper/60 px-4 py-5">
                         {loadingMessages ? (
                             <div className="flex h-full items-center justify-center">
-                                <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#d7e5f1] border-t-[#2196F3]" />
+                                <PlaneDoodle className="h-10 w-10 wobble text-ink/60" />
                             </div>
                         ) : messages.length === 0 ? (
                             <div className="flex h-full items-center justify-center text-center">
-                                <div className="max-w-sm">
-                                    <h2 className="text-xl font-bold text-[var(--foreground)]">
+                                <div className="relative max-w-sm">
+                                    <Star className="absolute -left-6 -top-4 h-5 w-5 text-sun float-doodle" />
+                                    <Heart className="absolute -right-5 top-2 h-5 w-5 text-blush float-doodle" />
+                                    <h2 className="font-hand text-3xl font-bold text-ink -rotate-1">
                                         Where should we go next?
                                     </h2>
-                                    <p className="mt-2 text-sm leading-6 text-gray-500">
+                                    <p className="mt-3 rotate-1 font-hand text-xl leading-snug text-ink/60">
                                         Ask about routes, itineraries, budgets, or what to do on a specific day.
                                     </p>
                                 </div>
                             </div>
                         ) : (
-                            <div className="mx-auto flex max-w-3xl flex-col gap-3">
+                            <div className="mx-auto flex max-w-3xl flex-col gap-4">
                                 {messages.map((message) => {
                                     const isUser = message.role === "user";
                                     return (
@@ -516,9 +528,9 @@ export default function ChatPage() {
                                             className={`flex ${isUser ? "justify-end" : "justify-start"}`}
                                         >
                                             <div
-                                                className={`max-w-[78%] rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm ${isUser
-                                                    ? "rounded-br-md bg-[#0878c9] text-white"
-                                                    : "rounded-bl-md border border-[#d7e5f1] bg-[#f8fbfd] text-[#172033]"
+                                                className={`sketch-border max-w-[78%] px-4 py-3 text-sm leading-6 ${isUser
+                                                    ? "-rotate-1 bg-sun/60 text-ink"
+                                                    : "rotate-1 bg-paper text-ink/90"
                                                     } ${"pending" in message && message.pending ? "opacity-70" : ""}`}
                                             >
                                                 {isUser ? (
@@ -534,8 +546,11 @@ export default function ChatPage() {
                                 })}
                                 {sending && (
                                     <div className="flex justify-start">
-                                        <div className="rounded-2xl rounded-bl-md border border-[#d7e5f1] bg-[#f8fbfd] px-4 py-3 text-sm text-gray-500 shadow-sm">
-                                            Thinking...
+                                        <div className="sketch-border rotate-1 px-4 py-3 text-sm text-ink/60">
+                                            <span className="flex items-center gap-2">
+                                                <PlaneDoodle className="h-5 w-5 wobble text-ink/60" />
+                                                scribbling...
+                                            </span>
                                         </div>
                                     </div>
                                 )}
@@ -546,9 +561,9 @@ export default function ChatPage() {
 
                     <form
                         onSubmit={handleSubmit}
-                        className="border-t border-[#d7e5f1] bg-white p-3"
+                        className="border-t-2 border-dashed border-ink/20 bg-paper p-3"
                     >
-                        <div className="mx-auto flex max-w-3xl items-end gap-2 rounded-2xl border border-[#d7e5f1] bg-[#f0f4f8] p-2 shadow-sm">
+                        <div className="mx-auto flex max-w-3xl items-end gap-2 sketch-border bg-paper p-2">
                             <label htmlFor="chat-message" className="sr-only">
                                 Message
                             </label>
@@ -564,13 +579,13 @@ export default function ChatPage() {
                                 }}
                                 rows={1}
                                 placeholder="Type a message..."
-                                className="max-h-32 min-h-10 flex-1 resize-none bg-transparent px-3 py-2 text-sm text-[var(--foreground)] outline-none placeholder:text-gray-500"
+                                className="max-h-32 min-h-10 flex-1 resize-none bg-transparent px-3 py-2 text-sm text-ink outline-none placeholder:text-ink/35"
                             />
                             <button
                                 type="submit"
                                 disabled={!canSend}
                                 aria-label="Send message"
-                                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0878c9] text-white transition-colors hover:bg-[#0669b1] disabled:cursor-not-allowed disabled:bg-gray-300"
+                                className="sketch-btn flex h-10 w-10 shrink-0 items-center justify-center p-0"
                             >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"

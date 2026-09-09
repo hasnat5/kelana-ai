@@ -32,55 +32,59 @@ body {
   font-family: var(--font-body), system-ui, sans-serif;
 }
 
-.font-hand {
-  font-family: var(--font-hand), cursive;
-}
+/* Component classes live in the components layer so Tailwind utilities
+   (e.g. bg-mint/50 accents on .sketch-border) can override their defaults. */
+@layer components {
+  .font-hand {
+    font-family: var(--font-hand), cursive;
+  }
 
-/* Sketchy, imperfect borders */
-.sketch-border {
-  border: 2.5px solid var(--stroke);
-  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
-  background: var(--paper);
-}
+  /* Sketchy, imperfect borders */
+  .sketch-border {
+    border: 2.5px solid var(--stroke);
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+    background: var(--paper);
+  }
 
-.sketch-border-thick {
-  border: 3px solid var(--stroke);
-  border-radius: 18px 28px 16px 24px / 24px 16px 28px 18px;
-  background: var(--paper);
-}
+  .sketch-border-thick {
+    border: 3px solid var(--stroke);
+    border-radius: 18px 28px 16px 24px / 24px 16px 28px 18px;
+    background: var(--paper);
+  }
 
-.sketch-btn {
-  border: 3px solid var(--stroke);
-  border-radius: 999px;
-  background: var(--sun);
-  color: var(--ink);
-  font-family: var(--font-hand), cursive;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 3px 3px 0 var(--stroke);
-}
+  .sketch-btn {
+    border: 3px solid var(--stroke);
+    border-radius: 999px;
+    background: var(--sun);
+    color: var(--ink);
+    font-family: var(--font-hand), cursive;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 3px 3px 0 var(--stroke);
+  }
 
-.sketch-btn:hover {
-  transform: rotate(-1deg) translateY(-1px);
-  box-shadow: 4px 4px 0 var(--stroke);
-}
+  .sketch-btn:hover {
+    transform: rotate(-1deg) translateY(-1px);
+    box-shadow: 4px 4px 0 var(--stroke);
+  }
 
-.sketch-btn:active {
-  transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0 var(--stroke);
-}
+  .sketch-btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--stroke);
+  }
 
-.sketch-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none;
-}
+  .sketch-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
 
-/* Rough-cut photo frame */
-.rough-cut {
-  border: 3px solid var(--stroke);
-  border-radius: 12px 40px 18px 35px / 35px 18px 40px 12px;
-  overflow: hidden;
-  box-shadow: 5px 5px 0 rgba(28, 25, 23, 0.15);
+  /* Rough-cut photo frame */
+  .rough-cut {
+    border: 3px solid var(--stroke);
+    border-radius: 12px 40px 18px 35px / 35px 18px 40px 12px;
+    overflow: hidden;
+    box-shadow: 5px 5px 0 rgba(28, 25, 23, 0.15);
+  }
 }
 
 .wobble {
