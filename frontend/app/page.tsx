@@ -46,6 +46,8 @@ const INITIAL_FORM: TripForm = {
   travelStyle: "",
 };
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 const ERROR_MESSAGE = "unable to generate itinerary, please try again";
 
 const FIELD_TILTS = ["-rotate-1", "rotate-1", "-rotate-1", "rotate-1", "-rotate-1"];
@@ -77,7 +79,7 @@ export default function Home() {
 
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch("http://localhost:8000/api/v1/trips", {
+      const response = await fetch(`${API_URL}/api/v1/trips`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
